@@ -25,8 +25,8 @@ def main():
     magRange = [20, 26]
 
     # Load CSV training data
-    filepathTrain = "../../Trainingdata/20pix_centered_train.csv"
-    filepathTest = "../../Trainingdata/20pix_centered_test.csv"
+    filepathTrain = "/Trainingdata/20pix_centered_train.csv"
+    filepathTest = "/Trainingdata/20pix_centered_test.csv"
 
     # Training hyperparameters
     subtract_pixel_mean = False
