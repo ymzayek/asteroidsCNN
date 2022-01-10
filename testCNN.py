@@ -23,8 +23,8 @@ def main():
     binsLength = 20
 
     # Load CSV training data
-    filepathTrain = "../Trainingdata/20pix_centered_train.csv"
-    filepathTest = "../Trainingdata/20pix_centered_test.csv"
+    filepathTrain = "/Trainingdata/20pix_centered_train.csv"
+    filepathTest = "/Trainingdata/20pix_centered_test.csv"
     #filepathTrain = "Trainingdata/20pix_10to1_train.csv"
     #filepathTest = "Trainingdata/20pix_10to1_test.csv"
     print("\nLoading training data from: ", filepathTrain)
