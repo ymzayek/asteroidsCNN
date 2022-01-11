@@ -208,7 +208,7 @@ def convert_pixels_to_arcsec_per_h(pixels):
     return arcsecPerH
 
 
-def plot_results_heatmap(dataframe2D, binsMag, title, savepdf=True):
+def plot_results_heatmap(dataframe2D, binsMag, title, fig_name = 'Plot_2D_histogram_CNN.pdf', savepdf=True): #ym
     """
     Plots the recall (completeness of predictions as a heatmap).
     Saves the heatmap to a pdf.
@@ -243,5 +243,6 @@ def plot_results_heatmap(dataframe2D, binsMag, title, savepdf=True):
     #PuBuGn
     fig4.tight_layout()
     if savepdf:
-        fig4.savefig('Plot_2D_histogram_CNN.pdf', dpi=300, format="pdf")
+        #fig4.savefig('Plot_2D_histogram_CNN.pdf', dpi=300, format="pdf")
+        fig4.savefig(fig_name, dpi=300, format="pdf")
     return

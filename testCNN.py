@@ -94,10 +94,10 @@ def main():
     cu.analyze_5unit_errors(predictionsTest, Y_test)
 
     dataframe2Dtrain = cu.create_histogram_2d(predictionsTrain, trainSetY, binsMag, binsLength)
-    cu.plot_results_heatmap(dataframe2Dtrain, binsMag, title="Deep learning training set completeness")
+    cu.plot_results_heatmap(dataframe2Dtrain, binsMag, fig_name = 'Plot_2D_histogram_CNN_train.pdf', title="Deep learning training set completeness") #ym
 
     dataframe2Dtest = cu.create_histogram_2d(predictionsTest, testSetY, binsMag, binsLength)
-    cu.plot_results_heatmap(dataframe2Dtest, binsMag, title="Deep learning test set completeness")
+    cu.plot_results_heatmap(dataframe2Dtest, binsMag, fig_name = 'Plot_2D_histogram_CNN_test.pdf', title="Deep learning test set completeness") #ym
 
     plt.show()
 
