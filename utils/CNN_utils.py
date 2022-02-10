@@ -101,7 +101,7 @@ def f1_metric(y_true, y_pred):
     return f1_val
 
 
-def analyze_5unit_errors(predictionsLabel, Y_testLabel, image_size=20):
+def analyze_5unit_errors(predictionsLabel, Y_testLabel): #,image_size=20
     """
     Compares predictions of labels and coordinates to ground truth
     """
