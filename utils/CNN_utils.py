@@ -140,14 +140,14 @@ def analyze_5unit_errors(predictionsLabel, Y_testLabel): #,image_size=20
     #medianErrorTotal = np.median(pixErrorList)
     #meanErrorTotal = np.mean(pixErrorList)
 
-    print("\nClassification accuracy, precision, recall:", accuracy, precision, recall)
+    print("\nClassification accuracy, precision, recall:", f"{accuracy:.2f}", f"{precision:.2f}", f"{recall:.2f}")
     print("TP, TN, FP, FN:", tp, tn, fp, fn)
     #print("Median coordinate error (x1, y1, x2, y2) [pixels]:", medianError)
     #print("Mean coordinate error (x1, y1, x2, y) [pixels]:", meanError)
     #print("Median total coordinate error [pixels]:", medianErrorTotal)
     #print("Mean total coordinate error [pixels]:", meanErrorTotal)
 
-    return f"\nClassification accuracy, precision, recall: {accuracy} {precision} {recall}\n TP, TN, FP, FN: {tp} {tn} {fp} {fn}"
+    return f"\nClassification accuracy, precision, recall: {accuracy:.2f} {precision:.2f} {recall:.2f}\n TP, TN, FP, FN: {tp} {tn} {fp} {fn}"
 
 
 def create_histogram_2d(predictions, Y, binsMag, binsLength):
