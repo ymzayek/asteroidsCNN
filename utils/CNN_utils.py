@@ -54,6 +54,7 @@ def load_data_from_csv(filename, shuffle=False, only_positive=False, multichanne
 
     return images, labels
 
+
 def crop_center(im, new_w, new_h):
     """
     Crop center of image
@@ -69,40 +70,7 @@ def crop_center(im, new_w, new_h):
     im = im.crop((left, top, right, bottom))
     
     return im
-
-def load_data_from_images(image_path, datasplit, mode, size = (20,20)):
-    """
-    Mode can be "Crop", "Resize", or "Original"
-    Size is used with "Crop" and "Resize" modes
-    """
-    image_path = image_path
-    data = {
-        "Path": [
-                 glob.glob(f"{image_path}/{datasplit}/asteroids/" + '*'), 
-                 glob.glob(f"{image_path}/{datasplit}/other/" + '*')
-                ],
-        "Label": [1,0],
-        "Set": datasplit
-         }
-    df = pd.DataFrame(data).explode('Path')
-    df = df.sample(frac=1, random_state=35) #shuffle
-    crop_w, crop_h = size
-    x = []
-    y = []
-    for i, file in enumerate(df['Path']):
-        im = Image.open(file)
-        if mode == "Crop":
-            im = crop_center(im, crop_w, crop_h)
-        elif mode == "Resize":
-            im = im.resize((crop_w, crop_h))
-        else:
-            pass
-        im = np.asarray(im)
-        x.append(im)
-        y.append(df['Label'].iloc[i])
     
-    return df, np.array(x, dtype=int), np.array(y, dtype=float)
-
 
 def unison_shuffled_copies(a, b):
     """
@@ -123,16 +91,11 @@ def custom_YOLO_loss(y_true, y_pred):
     # Weights for coordinates and labels
     params = [5.0, 0.5]
 
-    #lambda_coord = y_true[..., 0] * params[0]
     lambda_noobj = K.abs(y_true[..., 0] - y_pred[..., 0]) * params[1]
 
     lp = K.sum(K.square(y_true[..., 0] - y_pred[..., 0]) * lambda_noobj)
-    #lx1 = K.sum(K.square(y_pred[..., 1] - y_true[..., 1]) * lambda_coord)
-    #ly1 = K.sum(K.square(y_pred[..., 2] - y_true[..., 2]) * lambda_coord)
-    #lx2 = K.sum(K.square(y_pred[..., 3] - y_true[..., 3]) * lambda_coord)
-    #ly2 = K.sum(K.square(y_pred[..., 4] - y_true[..., 4]) * lambda_coord)
 
-    return lp # + lx1 + ly1 + lx2 + ly2
+    return lp
 
 
 def f1_metric(y_true, y_pred):
@@ -154,13 +117,6 @@ def analyze_5unit_errors(predictionsLabel, Y_testLabel): #,image_size=20
     """
     Compares predictions of labels and coordinates to ground truth
     """
-
-    #predictionsLabel = predictions[:, 0]
-    #predictionsPixel = predictions[:, 1:] * image_size
-    #Y_testLabel = Y_test[:, 0]
-    #Y_testPixel = Y_test[:, 1:] * image_size
-
-    #pixErrorList = []
     tp = 0
     tn = 0
     fp = 0
@@ -170,8 +126,6 @@ def analyze_5unit_errors(predictionsLabel, Y_testLabel): #,image_size=20
         predictedLabel = round(predictionsLabel[i])
         if trueLabel == 1 and predictedLabel == 1:
             tp += 1
-            #pixError = abs(predictionsPixel[i] - Y_testPixel[i])
-            #pixErrorList.append(pixError)
         elif trueLabel == 0 and predictedLabel == 0:
             tn += 1
         elif trueLabel == 0 and predictedLabel == 1:
@@ -183,18 +137,9 @@ def analyze_5unit_errors(predictionsLabel, Y_testLabel): #,image_size=20
     accuracy = (tp + tn) / len(predictionsLabel) * 100
     precision = tp / (tp + fp) * 100
     recall = tp / (tp + fn) * 100
-    #pixErrorList = np.asarray(pixErrorList)
-    #medianError = np.median(pixErrorList, axis=0)
-    #meanError = np.mean(pixErrorList, axis=0)
-    #medianErrorTotal = np.median(pixErrorList)
-    #meanErrorTotal = np.mean(pixErrorList)
 
     print("\nClassification accuracy, precision, recall:", f"{accuracy:.2f}", f"{precision:.2f}", f"{recall:.2f}")
     print("TP, TN, FP, FN:", tp, tn, fp, fn)
-    #print("Median coordinate error (x1, y1, x2, y2) [pixels]:", medianError)
-    #print("Mean coordinate error (x1, y1, x2, y) [pixels]:", meanError)
-    #print("Median total coordinate error [pixels]:", medianErrorTotal)
-    #print("Mean total coordinate error [pixels]:", meanErrorTotal)
 
     return f"\nClassification accuracy, precision, recall: {accuracy:.2f} {precision:.2f} {recall:.2f}\n TP, TN, FP, FN: {tp} {tn} {fp} {fn}"
 
@@ -292,6 +237,5 @@ def plot_results_heatmap(dataframe2D, binsMag, title, fig_name = 'Plot_2D_histog
     #PuBuGn
     fig4.tight_layout()
     if savepdf:
-        #fig4.savefig('Plot_2D_histogram_CNN.pdf', dpi=300, format="pdf")
         fig4.savefig(fig_name, dpi=300, format="pdf")
     return

@@ -9,6 +9,7 @@ import os
 from sklearn.metrics import confusion_matrix
 import glob
 import argparse
+import seaborn as sns
 
 from tensorflow.keras import __version__
 from tensorflow.keras import backend as K
@@ -20,14 +21,46 @@ from tensorflow.keras.models import Model
 
 import utils.CNN_utils as cu
 
+def load_data_from_images(image_path, datasplit, mode, size = (20,20)):
+    """
+    Mode can be "Crop", "Resize", or "Original"
+    Size is used with "Crop" and "Resize" modes
+    """
+    image_path = image_path
+    data = {
+        "Path": [
+                 glob.glob(f"{image_path}/{datasplit}/asteroids/" + '*'), 
+                 glob.glob(f"{image_path}/{datasplit}/other/" + '*')
+                ],
+        "Label": [1,0],
+        "Set": datasplit
+         }
+    df = pd.DataFrame(data).explode('Path')
+    df = df.sample(frac=1, random_state=35) #shuffle
+    crop_w, crop_h = size
+    x = []
+    y = []
+    for i, file in enumerate(df['Path']):
+        im = Image.open(file)
+        if mode == "Crop":
+            im = cu.crop_center(im, crop_w, crop_h)
+        elif mode == "Resize":
+            im = im.resize((crop_w, crop_h))
+        else:
+            pass
+        im = np.asarray(im)
+        x.append(im)
+        y.append(df['Label'].iloc[i])
+    
+    return df, np.array(x, dtype=int), np.array(y, dtype=float)
 
 def main():
     print('Using Keras version:', __version__, 'with backend:', K.backend(), tf.__version__)
     
     #load training data
-    trainSet, X_train, Y_train = cu.load_data_from_images(image_path, 'train', mode, size = (20,20))
-    validSet, X_valid, Y_valid = cu.load_data_from_images(image_path, 'valid', mode, size = (20,20))
-    testSet, X_test, Y_test = cu.load_data_from_images(image_path, 'test', mode, size = (20,20))
+    trainSet, X_train, Y_train = load_data_from_images(image_path, 'train', mode, size = (20,20))
+    validSet, X_valid, Y_valid = load_data_from_images(image_path, 'valid', mode, size = (20,20))
+    testSet, X_test, Y_test = load_data_from_images(image_path, 'test', mode, size = (20,20))
 
     # Training hyperparameters
     subtract_pixel_mean = False
@@ -175,7 +208,7 @@ def main():
 
     # Callback to save checkpoints of the best model so far.
     checkpointCB = ModelCheckpoint(
-        filepath='/data/p301081/astronomy/Models/checkpoint.hdf5',
+        filepath=f'{model_out}/checkpoint.hdf5',
         verbose=1,
         save_best_only=True,
         monitor='val_loss',
@@ -232,10 +265,9 @@ def main():
     print("\nTest set:")
     test_set_metrics = cu.analyze_5unit_errors(predictionsTest, Y_test)
 
-    if save:
-        modelName = f"cnn_asteroids_{mode}.h5"
-        print("\nSaving model to", modelName)
-        model.save(f"/data/p301081/astronomy/Models/{modelName}")
+    modelName = f"cnn_asteroids_{mode}.h5"
+    print("\nSaving model to", modelName)
+    model.save(f"{model_out}/{modelName}")
         
     plt.figure(figsize=(10,8))
     cf_matrix = confusion_matrix(Y_test, predictionsTest)
@@ -308,11 +340,14 @@ if __name__ == "__main__":
                         help='Whether or not you want to save performance output plots')
     parser.add_argument('--plots_out', metavar='path', required=False,
                         help='path where to save plots')
+    parser.add_argument('--model_out', metavar='path', required=False,
+                        help='path where to save model')
     args = parser.parse_args()
     
     image_path = args.image_path
     mode = args.mode
     save = args.save
     plots_out = args.plots_out
+    model_out = args.plots_out
     
     main()
