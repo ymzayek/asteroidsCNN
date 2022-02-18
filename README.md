@@ -1,6 +1,8 @@
 # Asteroids CNN
 CNN for detecting asteroid images from the Kilo-Degree Survey (KiDS) 
 
+Based on https://github.com/MikkoPontinen/EuclidCNN
+
 ---
 
 ## Training 
