@@ -8,38 +8,20 @@ from tensorflow.keras.models import load_model
 
 
 def main():
-    #modelName = "Models/model20PixAllMags_5unit_87.h5"
-    #modelName = "Models/model20PixAllMagsSW_5unit_82.h5"
-    #modelName = "Models/model20PixAllMagsSW_5unit_99prec.h5"
-    modelName = "../Models/model20Pix20-23_5unit.h5"
-    #modelName = "model20PixAllMags10-1_5unit_97.h5"
+    model_path = "/data/p301081/astronomy/Models"
 
-    # Selections for different CNN models
-    resnet = False
-    subtract_pixel_mean = False
-
-    # Selections for result heatmap
-    binsMag = 24
-    binsLength = 20
-
-    # Load CSV training data
-    filepathTrain = "/Trainingdata/20pix_centered_train.csv"
     filepathTest = "/Trainingdata/20pix_centered_test.csv"
-    #filepathTrain = "Trainingdata/20pix_10to1_train.csv"
-    #filepathTest = "Trainingdata/20pix_10to1_test.csv"
-    print("\nLoading training data from: ", filepathTrain)
-    trainSetX, trainSetY = cu.load_data_from_csv(filepathTrain, shuffle=False, only_positive=False, magRange=[20, 26])
     print("Loading test data from: ", filepathTest)
     testSetX, testSetY = cu.load_data_from_csv(filepathTest, shuffle=False, only_positive=False, magRange=[20, 26])
 
     # Make sure data is float32 to have enough decimals after normalization
-    X_train = trainSetX.astype('float32')
     X_test = testSetX.astype('float32')
     # Normalize pixel values between 0 and 1
-    X_train /= 2**16
-    X_test /= 2**16
+    X_train /= 2**8
+    X_test /= 2**8
 
     # If subtract pixel mean is enabled
+    subtract_pixel_mean = False
     if subtract_pixel_mean:
         X_train_mean = np.mean(X_train, axis=0)
         X_train -= X_train_mean

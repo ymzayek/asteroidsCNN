@@ -54,6 +54,55 @@ def load_data_from_csv(filename, shuffle=False, only_positive=False, multichanne
 
     return images, labels
 
+def crop_center(im, new_w, new_h):
+    """
+    Crop center of image
+    """
+    width, height = im.size   # Get dimensions
+
+    left = (width - new_w)/2
+    top = (height - new_h)/2
+    right = (width + new_w)/2
+    bottom = (height + new_h)/2
+
+    # Crop the center of the image
+    im = im.crop((left, top, right, bottom))
+    
+    return im
+
+def load_data_from_images(image_path, datasplit, mode, size = (20,20)):
+    """
+    Mode can be "Crop", "Resize", or "Original"
+    Size is used with "Crop" and "Resize" modes
+    """
+    image_path = image_path
+    data = {
+        "Path": [
+                 glob.glob(f"{image_path}/{datasplit}/asteroids/" + '*'), 
+                 glob.glob(f"{image_path}/{datasplit}/other/" + '*')
+                ],
+        "Label": [1,0],
+        "Set": datasplit
+         }
+    df = pd.DataFrame(data).explode('Path')
+    df = df.sample(frac=1, random_state=35) #shuffle
+    crop_w, crop_h = size
+    x = []
+    y = []
+    for i, file in enumerate(df['Path']):
+        im = Image.open(file)
+        if mode == "Crop":
+            im = crop_center(im, crop_w, crop_h)
+        elif mode == "Resize":
+            im = im.resize((crop_w, crop_h))
+        else:
+            pass
+        im = np.asarray(im)
+        x.append(im)
+        y.append(df['Label'].iloc[i])
+    
+    return df, np.array(x, dtype=int), np.array(y, dtype=float)
+
 
 def unison_shuffled_copies(a, b):
     """
