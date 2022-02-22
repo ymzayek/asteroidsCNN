@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from PIL import Image
-import cv2
 import os
 from sklearn.metrics import confusion_matrix
 import glob
@@ -21,10 +20,19 @@ from tensorflow.keras.models import Model
 
 import utils.CNN_utils as cu
 
-def load_data_from_images(image_path, datasplit, mode, size = (20,20)):
-    """
-    Mode can be "Crop", "Resize", or "Original"
-    Size is used with "Crop" and "Resize" modes
+
+def load_data_from_images(image_path, datasplit):
+    """Load images from directory
+
+    Parameters:
+    image_path (str): Path to images
+    datasplit (str): Choose 'train', 'valid', or 'test'
+
+    Returns:
+    DataFrame: table with path, label, and dataset description for each image
+    numpy array: image matrices
+    numpy array: corresponding labels
+
     """
     image_path = image_path
     data = {
@@ -37,30 +45,24 @@ def load_data_from_images(image_path, datasplit, mode, size = (20,20)):
          }
     df = pd.DataFrame(data).explode('Path')
     df = df.sample(frac=1, random_state=35) #shuffle
-    crop_w, crop_h = size
     x = []
     y = []
     for i, file in enumerate(df['Path']):
         im = Image.open(file)
-        if mode == "Crop":
-            im = cu.crop_center(im, crop_w, crop_h)
-        elif mode == "Resize":
-            im = im.resize((crop_w, crop_h))
-        else:
-            pass
         im = np.asarray(im)
         x.append(im)
         y.append(df['Label'].iloc[i])
     
     return df, np.array(x, dtype=int), np.array(y, dtype=float)
 
+
 def main():
     print('Using Keras version:', __version__, 'with backend:', K.backend(), tf.__version__)
     
     #load training data
-    trainSet, X_train, Y_train = load_data_from_images(image_path, 'train', mode, size = (20,20))
-    validSet, X_valid, Y_valid = load_data_from_images(image_path, 'valid', mode, size = (20,20))
-    testSet, X_test, Y_test = load_data_from_images(image_path, 'test', mode, size = (20,20))
+    trainSet, X_train, Y_train = load_data_from_images(image_path, 'train')
+    validSet, X_valid, Y_valid = load_data_from_images(image_path, 'valid')
+    testSet, X_test, Y_test = load_data_from_images(image_path, 'test')
 
     # Training hyperparameters
     subtract_pixel_mean = False
@@ -240,10 +242,10 @@ def main():
     plt.xlabel('Epoch')
     plt.ylabel('Binary crossentropy')
     plt.legend()
-    plt.title(f'Loss {mode}')
+    plt.title(f'Loss')
     plt.tight_layout()
     if save:
-        plt.savefig(f"{plots_out}/loss_{mode}.png")
+        plt.savefig(f"{plots_out}/loss.png")
 
     scoresTrain = model.evaluate(X_train, Y_train, verbose=2)
     scoresValid = model.evaluate(X_valid, Y_valid, verbose=2)
@@ -265,7 +267,7 @@ def main():
     print("\nTest set:")
     test_set_metrics = cu.analyze_5unit_errors(predictionsTest, Y_test)
 
-    modelName = f"cnn_asteroids_{mode}.h5"
+    modelName = f"cnn_asteroids.h5"
     print("\nSaving model to", modelName)
     model.save(f"{model_out}/{modelName}")
         
@@ -286,7 +288,7 @@ def main():
     labels = np.asarray(labels).reshape(2,2)
     ax = sns.heatmap(cf_matrix, annot=labels, fmt='', cmap='Blues')
 
-    ax.set_title(f'Confusion Matrix\n {mode}');
+    ax.set_title(f'Confusion Matrix\n');
     ax.set_xlabel('\nPredicted Values')
     ax.set_ylabel('Actual Values\n');
 
@@ -300,12 +302,12 @@ def main():
     plt.tight_layout()
 
     if save:
-        plt.savefig(f"{plots_out}/confusionMatrix_{mode}.png")
+        plt.savefig(f"{plots_out}/confusionMatrix.png")
     
     rows = int(group_counts[1]) + int(group_counts[2])
     fig = plt.figure(figsize=(10,14))
     plt.axis('off')
-    fig.suptitle(f'Data: {mode}', y=.98, fontsize = 16)
+    fig.suptitle(f'', y=.98, fontsize = 16)
     plt.tight_layout() 
     s = 1
     for idx, (first, second) in enumerate(zip(predictionsTest, Y_test)):
@@ -327,27 +329,22 @@ def main():
             s+=1
     plt.tight_layout()       
     if save:
-        plt.savefig(f"{plots_out}/fp_fn_{mode}.png")
+        plt.savefig(f"{plots_out}/fp_fn.png")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='')
-    parser.add_argument('--image_path', metavar='path', required=True,
-                        help='the path to training image data')
-    parser.add_argument('--mode', metavar='param', required=True,
-                        help='choose image mode for training: Crop, Resize, or Original')
-    parser.add_argument('--save', metavar='bool', required=True,
-                        help='Whether or not you want to save performance output plots')
-    parser.add_argument('--plots_out', metavar='path', required=False,
-                        help='path where to save plots')
-    parser.add_argument('--model_out', metavar='path', required=False,
+    parser = argparse.ArgumentParser(description='Train asteroids CNN')
+    parser.add_argument('--image_path', metavar='path', type=str, required=True,
+                        help='path to training image data')
+    parser.add_argument('--model_out', metavar='path', type=str, required=True,
                         help='path where to save model')
+    parser.add_argument('--plots_out', metavar='path', type=str, required=False, default=None,
+                        help='path where to save plots')
     args = parser.parse_args()
     
     image_path = args.image_path
-    mode = args.mode
-    save = args.save
+    model_out = args.model_out
     plots_out = args.plots_out
-    model_out = args.plots_out
+    save=False if plots_out==None else True
     
     main()
