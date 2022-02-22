@@ -21,48 +21,13 @@ from tensorflow.keras.models import Model
 import utils.CNN_utils as cu
 
 
-def load_data_from_images(image_path, datasplit):
-    """Load images from directory
-
-    Parameters:
-    image_path (str): Path to images
-    datasplit (str): Choose 'train', 'valid', or 'test'
-
-    Returns:
-    DataFrame: table with path, label, and dataset description for each image
-    numpy array: image matrices
-    numpy array: corresponding labels
-
-    """
-    image_path = image_path
-    data = {
-        "Path": [
-                 glob.glob(f"{image_path}/{datasplit}/asteroids/" + '*'), 
-                 glob.glob(f"{image_path}/{datasplit}/other/" + '*')
-                ],
-        "Label": [1,0],
-        "Set": datasplit
-         }
-    df = pd.DataFrame(data).explode('Path')
-    df = df.sample(frac=1, random_state=35) #shuffle
-    x = []
-    y = []
-    for i, file in enumerate(df['Path']):
-        im = Image.open(file)
-        im = np.asarray(im)
-        x.append(im)
-        y.append(df['Label'].iloc[i])
-    
-    return df, np.array(x, dtype=int), np.array(y, dtype=float)
-
-
 def main():
     print('Using Keras version:', __version__, 'with backend:', K.backend(), tf.__version__)
     
     #load training data
-    trainSet, X_train, Y_train = load_data_from_images(image_path, 'train')
-    validSet, X_valid, Y_valid = load_data_from_images(image_path, 'valid')
-    testSet, X_test, Y_test = load_data_from_images(image_path, 'test')
+    trainSet, X_train, Y_train = cu.load_data_from_images(image_path, 'train')
+    validSet, X_valid, Y_valid = cu.load_data_from_images(image_path, 'valid')
+    testSet, X_test, Y_test = cu.load_data_from_images(image_path, 'test')
 
     # Training hyperparameters
     subtract_pixel_mean = False

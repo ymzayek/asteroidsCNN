@@ -8,6 +8,41 @@ from matplotlib.ticker import FormatStrFormatter
 from tensorflow.keras import backend as K
 
 
+def load_data_from_images(image_path, datasplit):
+    """Load images from directory
+
+    Parameters:
+    image_path (str): Path to images
+    datasplit (str): Choose 'train', 'valid', or 'test'
+
+    Returns:
+    DataFrame: table with path, label, and dataset description for each image
+    numpy array: image matrices
+    numpy array: corresponding labels
+
+    """
+    image_path = image_path
+    data = {
+        "Path": [
+                 glob.glob(f"{image_path}/{datasplit}/asteroids/" + '*'), 
+                 glob.glob(f"{image_path}/{datasplit}/other/" + '*')
+                ],
+        "Label": [1,0],
+        "Set": datasplit
+         }
+    df = pd.DataFrame(data).explode('Path')
+    df = df.sample(frac=1, random_state=35) #shuffle
+    x = []
+    y = []
+    for i, file in enumerate(df['Path']):
+        im = Image.open(file)
+        im = np.asarray(im)
+        x.append(im)
+        y.append(df['Label'].iloc[i])
+    
+    return df, np.array(x, dtype=int), np.array(y, dtype=float)
+
+
 def crop_center(im, new_w, new_h):
     """
     Crop center of image
